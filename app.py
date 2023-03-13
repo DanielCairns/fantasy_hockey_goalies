@@ -1,15 +1,12 @@
 from dash import html, dcc, dash_table, Input, Output, Dash
 import altair as alt
-from vega_datasets import data
 import dash_bootstrap_components as dbc
 import pandas as pd
-
 
 # Read in global data
 goalies_df = pd.read_csv('all_goalie_starts.csv')
 teams = goalies_df['name'].unique()
 teams.sort()
-cars = data.cars()
 
 TEAM_CODES = {
     1:"NJD",
@@ -49,6 +46,9 @@ TEAM_CODES = {
 
 # Setup app and layout/frontend
 app = Dash(external_stylesheets=[dbc.themes.BOOTSTRAP])
+
+server = app.server
+
 app.layout = dbc.Container([
     html.H1('NHL Goalie Fantasy Point Distribution, 2022-23'),
     dbc.Row([
@@ -107,8 +107,11 @@ def plot_histogram(teams, opps, location):
     filtered_df = filtered_df[filtered_df['opponent.id'].isin(opps)]
     
     chart_hist = alt.Chart(filtered_df).mark_bar().encode(
-        alt.X("FPTS", bin=alt.Bin(extent=[-5, 15], step=1)),
-        y="count()"
+        alt.X("FPTS", 
+              axis=alt.Axis(title='Fantasy Points'),
+              bin=alt.Bin(extent=[-5, 15], step=1)),
+        alt.Y("count()",
+              axis=alt.Axis(title='Count'))
         ).properties(
             width=700,
             height=500
