@@ -47,7 +47,7 @@ TEAM_CODES = {
 
 
 # Setup app and layout/frontend
-app = Dash(external_stylesheets=[dbc.themes.BOOTSTRAP])
+app = Dash(external_stylesheets=[dbc.themes.LUX])
 
 server = app.server
 
@@ -148,7 +148,6 @@ def update_table(team, opp, location):
         
     # Filter requested team and opponent
     if team != "ALL TEAMS":
-        print("HELLO")
         filtered_df = filtered_df[filtered_df['team.name'] == team]
     if opp != "ALL TEAMS":
         filtered_df = filtered_df[filtered_df['opponent.name'] == opp]
