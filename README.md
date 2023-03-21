@@ -24,3 +24,13 @@ Fantasy points are calculated per game based on the following conversions:
 **1** point per overtime loss\
 **-1** point per goal against\
 **-1.5** point per loss
+
+## Data
+
+Raw data retrieved from [NHL.com API](https://statsapi.web.nhl.com/api/v1/teams) on March 12, 2023.
+
+NHL.com API documentation created by Drew Hynes accessible on [gitlab](https://gitlab.com/dword4/nhlapi).
+
+## License
+
+Licensed under the GNU General Public License v3.0.
