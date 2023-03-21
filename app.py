@@ -5,10 +5,12 @@ import pandas as pd
 
 # Read in global data
 goalies_df = pd.read_csv('all_goalie_starts.csv')
-teams = goalies_df['name'].unique()
-teams.sort()
+TEAMS = goalies_df['name'].unique().tolist()
+TEAMS.append("ALL TEAMS")
+TEAMS.sort()
 
 TEAM_CODES = {
+    0:"ALL TEAMS",
     1:"NJD",
     2:"NYI",
     3:"NYR",
@@ -54,11 +56,11 @@ app.layout = dbc.Container([
     dbc.Row([
         dbc.Col([
             html.Label(['Team'], style={'font-weight': 'bold'}),
-            dcc.Dropdown(id='team_dd', options=TEAM_CODES, value=list(TEAM_CODES.keys()), multi=True)
+            dcc.Dropdown(id='team_dd', options=TEAMS, value="ALL TEAMS", multi=False)
         ], md=5),
         dbc.Col([
             html.Label(['Opponent'], style={'font-weight': 'bold'}),
-            dcc.Dropdown(id='opp_dd', options=TEAM_CODES, value=list(TEAM_CODES.keys()), multi=True)
+            dcc.Dropdown(id='opp_dd', options=TEAMS, value="ALL TEAMS", multi=False)
         ], md=5),
         dbc.Col([
             html.Label(['Location'], style={'font-weight': 'bold'}),
@@ -79,20 +81,18 @@ app.layout = dbc.Container([
 
 # Set up callbacks/backend
 @app.callback(Output('hist', 'srcDoc'), Input('team_dd', 'value'), Input('opp_dd', 'value'), Input('loc_dd', 'value'))
-def plot_histogram(teams, opps, location):
+def plot_histogram(team, opp, location):
     """
     Update the histogram plot according to the user specified filters.
 
     Args:
-        teams (list): List of team ids to include
-        opps (list): List of opponent team ids to include
+        team (str): Team to include (or ALL TEAMS)
+        opp (str): Opponent to include (or ALL TEAMS)
         location (str): One of "All Locations", "Home", or "Away"
 
     Returns:
         HTML chart
     """
-    teams = [int(x) for x in teams]
-    opps = [int(x) for x in opps]
 
     filtered_df = goalies_df.copy()
     
@@ -103,9 +103,11 @@ def plot_histogram(teams, opps, location):
         filtered_df = filtered_df.query("isHome == False")
         
     # Filter requested team and opponent
-    filtered_df = filtered_df[filtered_df['team.id'].isin(teams)]
-    filtered_df = filtered_df[filtered_df['opponent.id'].isin(opps)]
-    
+    if team != "ALL TEAMS":
+        filtered_df = filtered_df[filtered_df['team.name'] == team]
+    if opp != "ALL TEAMS":
+        filtered_df = filtered_df[filtered_df['opponent.name'] == opp]
+
     chart_hist = alt.Chart(filtered_df).mark_bar().encode(
         alt.X("FPTS", 
               axis=alt.Axis(title='Fantasy Points'),
@@ -123,20 +125,18 @@ def plot_histogram(teams, opps, location):
     return (chart_hist+chart_line).to_html()
 
 @app.callback(Output('table', 'data'), Input('team_dd', 'value'), Input('opp_dd', 'value'), Input('loc_dd', 'value'))
-def update_table(teams, opps, location):
+def update_table(team, opp, location):
     """
     Update the table according to the user specified filters.
 
     Args:
-        teams (list): List of team ids to include
-        opps (list): List of opponent team ids to include
+        team (str): Team to include (or all teams)
+        opp (str): Opponent team to include (or all teams)
         location (str): One of "All Locations", "Home", or "Away"
 
     Returns:
         data to update table with
     """
-    teams = [int(x) for x in teams]
-    opps = [int(x) for x in opps]
 
     filtered_df = goalies_df.copy()
     
@@ -147,8 +147,11 @@ def update_table(teams, opps, location):
         filtered_df = filtered_df.query("isHome == False")
         
     # Filter requested team and opponent
-    filtered_df = filtered_df[filtered_df['team.id'].isin(teams)]
-    filtered_df = filtered_df[filtered_df['opponent.id'].isin(opps)]
+    if team != "ALL TEAMS":
+        print("HELLO")
+        filtered_df = filtered_df[filtered_df['team.name'] == team]
+    if opp != "ALL TEAMS":
+        filtered_df = filtered_df[filtered_df['opponent.name'] == opp]
     
     agg_df = filtered_df.groupby(by=["person.fullName", "team.id"]).agg(
         {'stat.gamesStarted':'sum', 'FPTS':'mean'}
